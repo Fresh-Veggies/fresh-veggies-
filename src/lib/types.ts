@@ -8,6 +8,7 @@ export interface Product {
   inStock: boolean;
   minOrder: number;
   maxOrder: number;
+  step: number;
 }
 
 export interface CartItem {

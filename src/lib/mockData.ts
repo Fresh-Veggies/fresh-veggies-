@@ -11,6 +11,7 @@ export const MOCK_PRODUCTS: Product[] = [
     inStock: true,
     minOrder: 10,
     maxOrder: 100,
+    step: 5,
   },
   {
     id: '2',
@@ -22,6 +23,7 @@ export const MOCK_PRODUCTS: Product[] = [
     inStock: true,
     minOrder: 5,
     maxOrder: 100,
+    step: 5,
   },
   {
     id: '3',
@@ -33,6 +35,7 @@ export const MOCK_PRODUCTS: Product[] = [
     inStock: true,
     minOrder: 5,
     maxOrder: 100,
+    step: 5,
   },
   {
     id: '4',
@@ -44,6 +47,7 @@ export const MOCK_PRODUCTS: Product[] = [
     inStock: true,
     minOrder: 2,
     maxOrder: 50,
+    step: 2,
   },
   {
     id: '5',
@@ -55,6 +59,7 @@ export const MOCK_PRODUCTS: Product[] = [
     inStock: true,
     minOrder: 5,
     maxOrder: 100,
+    step: 5,
   },
   {
     id: '6',
@@ -66,6 +71,7 @@ export const MOCK_PRODUCTS: Product[] = [
     inStock: true,
     minOrder: 3,
     maxOrder: 100,
+    step: 3,
   },
   {
     id: '7',
@@ -77,6 +83,7 @@ export const MOCK_PRODUCTS: Product[] = [
     inStock: true,
     minOrder: 2,
     maxOrder: 50,
+    step: 2,
   },
   {
     id: '8',
@@ -88,6 +95,7 @@ export const MOCK_PRODUCTS: Product[] = [
     inStock: true,
     minOrder: 3,
     maxOrder: 100,
+    step: 3,
   },
   {
     id: '9',
@@ -99,6 +107,7 @@ export const MOCK_PRODUCTS: Product[] = [
     inStock: false,
     minOrder: 2,
     maxOrder: 50,
+    step: 2,
   },
   {
     id: '10',
@@ -110,6 +119,7 @@ export const MOCK_PRODUCTS: Product[] = [
     inStock: true,
     minOrder: 1,
     maxOrder: 30,
+    step: 1,
   },
 ];
 

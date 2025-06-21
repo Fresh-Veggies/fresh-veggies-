@@ -1,22 +1,113 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* Light mode - Fresh & Vibrant */
+  --background: #fafbfc;
+  --foreground: #1a202c;
+  --card: #ffffff;
+  --card-foreground: #1a202c;
+  --popover: #ffffff;
+  --popover-foreground: #1a202c;
+  --primary: #16a34a;
+  --primary-foreground: #ffffff;
+  --secondary: #f7fafc;
+  --secondary-foreground: #2d3748;
+  --muted: #edf2f7;
+  --muted-foreground: #718096;
+  --accent: #f0fff4;
+  --accent-foreground: #22543d;
+  --destructive: #e53e3e;
+  --destructive-foreground: #ffffff;
+  --border: #e2e8f0;
+  --input: #ffffff;
+  --ring: #16a34a;
+  
+  /* Additional color variables for variety */
+  --success: #10b981;
+  --success-foreground: #ffffff;
+  --warning: #f59e0b;
+  --warning-foreground: #ffffff;
+  --info: #3b82f6;
+  --info-foreground: #ffffff;
+  --purple: #8b5cf6;
+  --purple-foreground: #ffffff;
+  --orange: #f97316;
+  --orange-foreground: #ffffff;
+  --pink: #ec4899;
+  --pink-foreground: #ffffff;
+}
+
+.dark {
+  /* Dark mode - Colorful & Modern */
+  --background: #0f0f23;
+  --foreground: #e2e8f0;
+  --card: #1a1a2e;
+  --card-foreground: #e2e8f0;
+  --popover: #1a1a2e;
+  --popover-foreground: #e2e8f0;
+  --primary: #00f5ff;
+  --primary-foreground: #0f0f23;
+  --secondary: #16213e;
+  --secondary-foreground: #cbd5e1;
+  --muted: #0e3460;
+  --muted-foreground: #94a3b8;
+  --accent: #1e293b;
+  --accent-foreground: #00f5ff;
+  --destructive: #ff4757;
+  --destructive-foreground: #ffffff;
+  --border: #334155;
+  --input: #1e293b;
+  --ring: #00f5ff;
+  
+  /* Additional color variables for variety */
+  --success: #2dd4bf;
+  --success-foreground: #0f0f23;
+  --warning: #fbbf24;
+  --warning-foreground: #0f0f23;
+  --info: #60a5fa;
+  --info-foreground: #0f0f23;
+  --purple: #a78bfa;
+  --purple-foreground: #0f0f23;
+  --orange: #fb923c;
+  --orange-foreground: #0f0f23;
+  --pink: #f472b6;
+  --pink-foreground: #0f0f23;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
+  --color-warning: var(--warning);
+  --color-warning-foreground: var(--warning-foreground);
+  --color-info: var(--info);
+  --color-info-foreground: var(--info-foreground);
+  --color-purple: var(--purple);
+  --color-purple-foreground: var(--purple-foreground);
+  --color-orange: var(--orange);
+  --color-orange-foreground: var(--orange-foreground);
+  --color-pink: var(--pink);
+  --color-pink-foreground: var(--pink-foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
 }
 
 body {
@@ -56,9 +147,24 @@ body {
   animation: fadeIn 0.3s ease-out;
 }
 
+@keyframes shimmer {
+  0% {
+    background-position: -200px 0;
+  }
+  100% {
+    background-position: calc(200px + 100%) 0;
+  }
+}
+
+.animate-shimmer {
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+  background-size: 200px 100%;
+  animation: shimmer 1.5s infinite;
+}
+
 /* Loading skeleton */
 .skeleton {
-  @apply animate-pulse bg-gray-200 rounded;
+  @apply animate-pulse bg-gray-200 dark:bg-gray-700 rounded;
 }
 
 /* Custom styles for better UX */
@@ -77,4 +183,17 @@ input[type="number"] {
   transition-property: color, background-color, border-color, text-decoration-color, fill, stroke, opacity, box-shadow, transform;
   transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
   transition-duration: 150ms;
+}
+
+/* Custom gradient backgrounds */
+.gradient-primary {
+  background: linear-gradient(135deg, var(--primary) 0%, var(--success) 100%);
+}
+
+.gradient-secondary {
+  background: linear-gradient(135deg, var(--info) 0%, var(--purple) 100%);
+}
+
+.gradient-accent {
+  background: linear-gradient(135deg, var(--orange) 0%, var(--pink) 100%);
 }
