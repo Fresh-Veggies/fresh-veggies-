@@ -90,38 +90,75 @@ async def startup_event():
     """Initialize database tables and seed data"""
     try:
         print("🚀 Initializing Fresh Veggies API...")
-        create_tables()
-        print("✅ Database tables created successfully")
+        print(f"Environment: {settings.ENVIRONMENT}")
+        print(f"Database URL configured: {'Yes' if settings.DATABASE_URL else 'No'}")
         
-        # Seed initial data
-        from app.database.seed import seed_database
-        await seed_database()
-        print("✅ Database seeded with initial data")
+        # Try to create tables but don't fail if it doesn't work
+        try:
+            create_tables()
+            print("✅ Database tables created successfully")
+        except Exception as db_error:
+            print(f"⚠️ Database table creation failed: {db_error}")
+            print("📝 App will start anyway - database operations may fail")
+        
+        # Try to seed initial data but don't fail if it doesn't work
+        try:
+            from app.database.seed import seed_database
+            await seed_database()
+            print("✅ Database seeded with initial data")
+        except Exception as seed_error:
+            print(f"⚠️ Database seeding failed: {seed_error}")
+            print("📝 App will start with empty database")
+        
+        print("🎉 Fresh Veggies API startup completed")
         
     except Exception as e:
-        print(f"❌ Database initialization failed: {e}")
-        # Don't crash the app, let it start anyway
-        print("⚠️ App will continue without full database initialization")
+        print(f"⚠️ Startup process encountered errors: {e}")
+        print("🔄 App will continue starting - some features may be limited")
 
 # Health check endpoint
 @app.get("/health")
 async def health_check():
     """Health check endpoint for deployment monitoring"""
     try:
-        # Test database connection
-        db = next(get_database())
-        db.execute("SELECT 1")
-        db_status = "connected"
+        # Test database connection with timeout
+        from app.database.connection import get_database
+        import signal
+        
+        def timeout_handler(signum, frame):
+            raise TimeoutError("Database connection timeout")
+        
+        # Set a 5-second timeout for database check
+        signal.signal(signal.SIGALRM, timeout_handler)
+        signal.alarm(5)
+        
+        try:
+            db = next(get_database())
+            from sqlalchemy import text
+            db.execute(text("SELECT 1"))
+            db_status = "connected"
+            signal.alarm(0)  # Cancel the alarm
+        except Exception as e:
+            signal.alarm(0)  # Cancel the alarm
+            print(f"Database health check failed: {e}")
+            db_status = "disconnected"
+            
     except Exception as e:
-        print(f"Database health check failed: {e}")
-        db_status = "disconnected"
+        print(f"Health check error: {e}")
+        db_status = "error"
     
     return {
         "status": "healthy",
         "database": db_status,
         "environment": settings.ENVIRONMENT,
         "version": "2.0.0",
-        "timestamp": "2024-06-24T23:30:00Z"
+        "message": "API is running",
+        "endpoints": {
+            "docs": "/docs",
+            "admin": "/api/admin",
+            "user": "/api/user",
+            "delivery": "/api/delivery"
+        }
     }
 
 # Root endpoint with API documentation
