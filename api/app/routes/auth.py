@@ -68,7 +68,7 @@ def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(securit
     
     try:
         payload = jwt.decode(credentials.credentials, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
-        email: str = payload.get("sub")
+        email = payload.get("sub")
         if email is None:
             raise credentials_exception
     except JWTError:
@@ -80,7 +80,7 @@ def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(securit
     return user
 
 def get_current_active_user(current_user: User = Depends(get_current_user)):
-    if not current_user.is_active:
+    if not bool(current_user.is_active):
         raise HTTPException(status_code=400, detail="Inactive user")
     return current_user
 
@@ -144,14 +144,14 @@ async def login_user(user_credentials: UserLogin, db: Session = Depends(get_data
     # Find user by email
     user = db.query(User).filter(User.email == user_credentials.email).first()
     
-    if not user or not verify_password(user_credentials.password, user.password):
+    if not user or not verify_password(user_credentials.password, str(user.password)):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Incorrect email or password",
             headers={"WWW-Authenticate": "Bearer"},
         )
     
-    if not user.is_active:
+    if not bool(user.is_active):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Inactive user account"
@@ -194,7 +194,7 @@ async def logout_user(current_user: User = Depends(get_current_active_user)):
 
 # Role-based dependency functions
 def require_admin(current_user: User = Depends(get_current_active_user)):
-    if current_user.role != "admin":
+    if str(current_user.role) != "admin":
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Admin access required"
@@ -202,7 +202,7 @@ def require_admin(current_user: User = Depends(get_current_active_user)):
     return current_user
 
 def require_delivery(current_user: User = Depends(get_current_active_user)):
-    if current_user.role != "delivery":
+    if str(current_user.role) != "delivery":
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Delivery partner access required"
@@ -210,7 +210,7 @@ def require_delivery(current_user: User = Depends(get_current_active_user)):
     return current_user
 
 def require_customer(current_user: User = Depends(get_current_active_user)):
-    if current_user.role != "customer":
+    if str(current_user.role) != "customer":
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Customer access required"

@@ -24,11 +24,17 @@ class ProductResponse(BaseModel):
     stock_quantity: int
     is_featured: bool
     image_url: str
+    
+    class Config:
+        from_attributes = True
 
 class CategoryResponse(BaseModel):
     id: int
     name: str
     description: str
+    
+    class Config:
+        from_attributes = True
 
 class OrderItemCreate(BaseModel):
     product_id: int
@@ -48,6 +54,9 @@ class OrderResponse(BaseModel):
     delivery_phone: str
     created_at: datetime
     items: List[dict]
+    
+    class Config:
+        from_attributes = True
 
 class UserProfileUpdate(BaseModel):
     name: Optional[str] = None
@@ -62,28 +71,28 @@ async def get_products(
     db: Session = Depends(get_database)
 ):
     """Get all products for customers with optional filtering"""
-    query = db.query(Product).join(Category).filter(Product.is_active == True)
+    query = db.query(Product).join(Category).filter(Product.is_active.is_(True))
     
     if category_id:
         query = query.filter(Product.category_id == category_id)
     
     if featured_only:
-        query = query.filter(Product.is_featured == True)
+        query = query.filter(Product.is_featured.is_(True))
     
     products = query.all()
     
     return [
         ProductResponse(
-            id=product.id,
-            name=product.name,
-            description=product.description or "",
-            price=product.price,
-            unit=product.unit,
-            category_id=product.category_id,
-            category_name=product.category.name,
-            stock_quantity=product.stock_quantity,
-            is_featured=product.is_featured,
-            image_url=product.image_url or ""
+            id=int(product.id.value),
+            name=str(product.name),
+            description=str(product.description or ""),
+            price=float(product.price.value),
+            unit=str(product.unit),
+            category_id=int(product.category_id.value),
+            category_name=str(product.category.name),
+            stock_quantity=int(product.stock_quantity.value),
+            is_featured=bool(product.is_featured),
+            image_url=str(product.image_url or "")
         )
         for product in products
     ]
@@ -93,7 +102,7 @@ async def get_product(product_id: int, db: Session = Depends(get_database)):
     """Get specific product details"""
     product = db.query(Product).join(Category).filter(
         Product.id == product_id,
-        Product.is_active == True
+        Product.is_active.is_(True)
     ).first()
     
     if not product:
@@ -103,28 +112,28 @@ async def get_product(product_id: int, db: Session = Depends(get_database)):
         )
     
     return ProductResponse(
-        id=product.id,
-        name=product.name,
-        description=product.description or "",
-        price=product.price,
-        unit=product.unit,
-        category_id=product.category_id,
-        category_name=product.category.name,
-        stock_quantity=product.stock_quantity,
-        is_featured=product.is_featured,
-        image_url=product.image_url or ""
+        id=product.id.value,
+        name=product.name.value,
+        description=product.description.value or "",
+        price=product.price.value,
+        unit=product.unit.value,
+        category_id=product.category_id.value,
+        category_name=product.category.name.value,
+        stock_quantity=product.stock_quantity.value,
+        is_featured=product.is_featured.value,
+        image_url=product.image_url.value or ""
     )
 
 @router.get("/categories", response_model=List[CategoryResponse])
 async def get_categories(db: Session = Depends(get_database)):
     """Get all product categories"""
-    categories = db.query(Category).filter(Category.is_active == True).all()
+    categories = db.query(Category).filter(Category.is_active.is_(True)).all()
     
     return [
         CategoryResponse(
-            id=category.id,
-            name=category.name,
-            description=category.description or ""
+            id=category.id.value,
+            name=category.name.value,
+            description=category.description.value or ""
         )
         for category in categories
     ]
@@ -160,7 +169,7 @@ async def create_order(
                 detail=f"Product with ID {item.product_id} not found"
             )
         
-        if product.stock_quantity < item.quantity:
+        if product.stock_quantity.value < item.quantity:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail=f"Insufficient stock for {product.name}. Available: {product.stock_quantity}"
@@ -219,12 +228,12 @@ async def create_order(
     ]
     
     return OrderResponse(
-        id=db_order.id,
-        total_amount=db_order.total_amount,
-        status=db_order.status,
-        delivery_address=db_order.delivery_address,
-        delivery_phone=db_order.delivery_phone,
-        created_at=db_order.created_at,
+        id=db_order.id.value,
+        total_amount=db_order.total_amount.value,
+        status=db_order.status.value,
+        delivery_address=db_order.delivery_address.value,
+        delivery_phone=db_order.delivery_phone.value,
+        created_at=db_order.created_at.value,
         items=items
     )
 
@@ -249,12 +258,12 @@ async def get_user_orders(
             })
         
         result.append(OrderResponse(
-            id=order.id,
-            total_amount=order.total_amount,
-            status=order.status,
-            delivery_address=order.delivery_address,
-            delivery_phone=order.delivery_phone,
-            created_at=order.created_at,
+            id=order.id.value,
+            total_amount=order.total_amount.value,
+            status=order.status.value,
+            delivery_address=order.delivery_address.value,
+            delivery_phone=order.delivery_phone.value,
+            created_at=order.created_at.value,
             items=items
         ))
     
@@ -289,12 +298,12 @@ async def get_order_details(
         })
     
     return OrderResponse(
-        id=order.id,
-        total_amount=order.total_amount,
-        status=order.status,
-        delivery_address=order.delivery_address,
-        delivery_phone=order.delivery_phone,
-        created_at=order.created_at,
+        id=order.id.value,
+        total_amount=order.total_amount.value,
+        status=order.status.value,
+        delivery_address=order.delivery_address.value,
+        delivery_phone=order.delivery_phone.value,
+        created_at=order.created_at.value,
         items=items
     )
 
@@ -303,14 +312,14 @@ async def get_order_details(
 async def get_profile(current_user: User = Depends(get_current_active_user)):
     """Get current user profile"""
     return {
-        "id": current_user.id,
-        "name": current_user.name,
-        "email": current_user.email,
-        "phone": current_user.phone,
-        "address": current_user.address,
-        "role": current_user.role,
-        "is_active": current_user.is_active,
-        "created_at": current_user.created_at
+        "id": current_user.id.value,
+        "name": current_user.name.value,
+        "email": current_user.email.value,
+        "phone": current_user.phone.value,
+        "address": current_user.address.value,
+        "role": current_user.role.value,
+        "is_active": current_user.is_active.value,
+        "created_at": current_user.created_at.value
     }
 
 @router.put("/profile")
@@ -322,11 +331,11 @@ async def update_profile(
     """Update user profile"""
     
     if profile_data.name:
-        current_user.name = profile_data.name
+        setattr(current_user, 'name', profile_data.name)
     if profile_data.phone:
-        current_user.phone = profile_data.phone
+        setattr(current_user, 'phone', profile_data.phone)
     if profile_data.address:
-        current_user.address = profile_data.address
+        setattr(current_user, 'address', profile_data.address)
     
     db.commit()
     db.refresh(current_user)
@@ -334,10 +343,10 @@ async def update_profile(
     return {
         "message": "Profile updated successfully",
         "profile": {
-            "id": current_user.id,
-            "name": current_user.name,
-            "email": current_user.email,
-            "phone": current_user.phone,
-            "address": current_user.address
+            "id": current_user.id.value,
+            "name": current_user.name.value,
+            "email": current_user.email.value,
+            "phone": current_user.phone.value,
+            "address": current_user.address.value
         }
     } 
