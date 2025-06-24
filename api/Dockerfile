@@ -23,4 +23,4 @@ RUN mkdir -p uploads
 EXPOSE $PORT
 
 # Run the application
-CMD python fresh_api.py 
+CMD uvicorn main:app --host 0.0.0.0 --port $PORT 
