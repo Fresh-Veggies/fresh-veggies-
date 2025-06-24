@@ -23,4 +23,4 @@ RUN mkdir -p uploads
 EXPOSE $PORT
 
 # Run the application
-CMD uvicorn main_simple:app --host 0.0.0.0 --port $PORT 
+CMD uvicorn main_debug:app --host 0.0.0.0 --port $PORT 
