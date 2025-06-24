@@ -23,4 +23,4 @@ RUN mkdir -p uploads
 EXPOSE $PORT
 
 # Run the application
-CMD python api_server.py 
+CMD python fresh_api.py 
