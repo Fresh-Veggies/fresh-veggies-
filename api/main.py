@@ -18,9 +18,9 @@ app = FastAPI(
     title="Fresh Veggies API",
     description="Backend API for bulk vegetable e-commerce platform",
     version="1.0.0",
-    docs_url="/api/docs",
-    redoc_url="/api/redoc",
-    openapi_url="/api/openapi.json"
+    docs_url="/docs",
+    redoc_url="/redoc",
+    openapi_url="/openapi.json"
 )
 
 # CORS middleware
@@ -72,7 +72,9 @@ async def root():
     return {
         "message": "Fresh Veggies API",
         "version": "1.0.0",
-        "docs": "/api/docs"
+        "docs": "/docs",
+        "redoc": "/redoc",
+        "api_endpoints": "/api/"
     }
 
 # Global exception handler
