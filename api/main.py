@@ -42,22 +42,21 @@ app.add_middleware(
 @app.on_event("startup")
 async def startup_event():
     """Create database tables and initialize app"""
-    try:
-        create_tables()
-        print("✅ Database tables created successfully")
-    except Exception as e:
-        print(f"❌ Database initialization failed: {e}")
-        raise e
+    print("🚀 App starting up...")
+    # Temporarily disable database initialization for debugging
+    # try:
+    #     create_tables()
+    #     print("✅ Database tables created successfully")
+    # except Exception as e:
+    #     print(f"❌ Database initialization failed: {e}")
+    #     print("⚠️ App will continue without database initialization")
+    print("✅ App startup complete")
 
 # Health check endpoint
 @app.get("/health")
 async def health_check():
     """Health check endpoint"""
-    return {
-        "status": "healthy",
-        "environment": settings.ENVIRONMENT,
-        "database": "connected"
-    }
+    return {"status": "healthy"}
 
 # Include routers
 app.include_router(auth.router, prefix="/api/auth", tags=["Authentication"])

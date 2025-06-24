@@ -4,7 +4,7 @@ import os
 
 class Settings(BaseSettings):
     # Database
-    DATABASE_URL: str = "postgresql://username:password@localhost:5432/fresh_veggies"
+    DATABASE_URL: str = os.getenv("DATABASE_URL", "postgresql://username:password@localhost:5432/fresh_veggies")
     
     # JWT
     SECRET_KEY: str = "your-super-secret-key-here-change-in-production"
