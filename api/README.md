@@ -368,7 +368,7 @@ alembic upgrade head
 python -c "from app.database.seed import seed_database; import asyncio; asyncio.run(seed_database())"
 ```
 
-## 🧪 Testing
+## 🧪 Complete API Testing Guide
 
 ### Test Users (Seeded Data)
 
@@ -378,29 +378,331 @@ python -c "from app.database.seed import seed_database; import asyncio; asyncio.
 | Delivery | `delivery@freshveggies.com` | `delivery123` | Delivery partner |
 | Customer | `customer@example.com` | `customer123` | Sample customer |
 
-### Sample Products
+### Sample Products (8 Products, 4 Categories)
 
-The database is seeded with 8 sample products across 4 categories:
-- **Vegetables:** Tomatoes, Carrots, Onions, Capsicum
-- **Fruits:** Apples, Bananas
-- **Leafy Greens:** Spinach
-- **Herbs:** Coriander
+**Categories:**
+- **Vegetables:** Tomatoes (₹45/kg), Carrots (₹35/kg), Onions (₹30/kg), Capsicum (₹60/kg)
+- **Fruits:** Apples (₹80/kg), Bananas (₹40/dozen)
+- **Leafy Greens:** Spinach (₹25/bunch)
+- **Herbs:** Coriander (₹15/bunch)
 
-### Testing Endpoints
+---
 
+## 🔗 Complete API Flow Testing
+
+### 1. 🛒 **Customer Flow Testing**
+
+#### **Step 1: Register New Customer**
+```bash
+curl -X POST "https://fresh-veggies-production.up.railway.app/api/auth/register" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email": "newcustomer@example.com",
+    "password": "password123",
+    "name": "John Doe",
+    "role": "customer"
+  }'
+```
+
+#### **Step 2: Login Customer**
+```bash
+curl -X POST "https://fresh-veggies-production.up.railway.app/api/auth/login" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email": "newcustomer@example.com",
+    "password": "password123"
+  }'
+```
+*Save the `access_token` from response*
+
+#### **Step 3: Browse Products**
 ```bash
 # Get all products
-curl https://fresh-veggies-production.up.railway.app/api/user/products
+curl "https://fresh-veggies-production.up.railway.app/api/user/products"
 
-# Login as admin
-curl -X POST https://fresh-veggies-production.up.railway.app/api/auth/login \
+# Get featured products only
+curl "https://fresh-veggies-production.up.railway.app/api/user/products?featured_only=true"
+
+# Get products by category (Vegetables = category_id: 1)
+curl "https://fresh-veggies-production.up.railway.app/api/user/products?category_id=1"
+
+# Get specific product details
+curl "https://fresh-veggies-production.up.railway.app/api/user/products/1"
+
+# Get all categories
+curl "https://fresh-veggies-production.up.railway.app/api/user/categories"
+```
+
+#### **Step 4: Place Order**
+```bash
+curl -X POST "https://fresh-veggies-production.up.railway.app/api/user/orders" \
   -H "Content-Type: application/json" \
-  -d '{"email": "admin@freshveggies.com", "password": "admin123"}'
+  -H "Authorization: Bearer YOUR_CUSTOMER_TOKEN" \
+  -d '{
+    "items": [
+      {"product_id": 1, "quantity": 2},
+      {"product_id": 3, "quantity": 1}
+    ],
+    "delivery_address": "123 Main Street, Delhi, 110001",
+    "delivery_phone": "+91-9876543210",
+    "delivery_notes": "Please call before delivery"
+  }'
+```
 
-# Get admin dashboard (requires admin token)
-curl -X GET https://fresh-veggies-production.up.railway.app/api/admin/dashboard/stats \
+#### **Step 5: View Orders**
+```bash
+# Get all user orders
+curl -X GET "https://fresh-veggies-production.up.railway.app/api/user/orders" \
+  -H "Authorization: Bearer YOUR_CUSTOMER_TOKEN"
+
+# Get specific order details
+curl -X GET "https://fresh-veggies-production.up.railway.app/api/user/orders/1" \
+  -H "Authorization: Bearer YOUR_CUSTOMER_TOKEN"
+```
+
+#### **Step 6: Manage Profile**
+```bash
+# Get user profile
+curl -X GET "https://fresh-veggies-production.up.railway.app/api/user/profile" \
+  -H "Authorization: Bearer YOUR_CUSTOMER_TOKEN"
+
+# Update profile
+curl -X PUT "https://fresh-veggies-production.up.railway.app/api/user/profile" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_CUSTOMER_TOKEN" \
+  -d '{
+    "name": "John Smith",
+    "phone": "+91-9876543210",
+    "address": "456 New Street, Mumbai, 400001"
+  }'
+```
+
+---
+
+### 2. ⚙️ **Admin Flow Testing**
+
+#### **Step 1: Login as Admin**
+```bash
+curl -X POST "https://fresh-veggies-production.up.railway.app/api/auth/login" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email": "admin@freshveggies.com",
+    "password": "admin123"
+  }'
+```
+*Save the `access_token` for admin operations*
+
+#### **Step 2: Dashboard Analytics**
+```bash
+# Get dashboard statistics
+curl -X GET "https://fresh-veggies-production.up.railway.app/api/admin/dashboard/stats" \
+  -H "Authorization: Bearer YOUR_ADMIN_TOKEN"
+
+# Get revenue reports
+curl -X GET "https://fresh-veggies-production.up.railway.app/api/admin/revenue" \
   -H "Authorization: Bearer YOUR_ADMIN_TOKEN"
 ```
+
+#### **Step 3: Order Management**
+```bash
+# Get all orders
+curl -X GET "https://fresh-veggies-production.up.railway.app/api/admin/orders" \
+  -H "Authorization: Bearer YOUR_ADMIN_TOKEN"
+
+# Update order status
+curl -X PUT "https://fresh-veggies-production.up.railway.app/api/admin/orders/1/status" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_ADMIN_TOKEN" \
+  -d '{
+    "status": "confirmed",
+    "delivery_partner_id": 2
+  }'
+```
+
+#### **Step 4: Product Management**
+```bash
+# Get all products (admin view)
+curl -X GET "https://fresh-veggies-production.up.railway.app/api/admin/products" \
+  -H "Authorization: Bearer YOUR_ADMIN_TOKEN"
+
+# Add new product
+curl -X POST "https://fresh-veggies-production.up.railway.app/api/admin/products" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_ADMIN_TOKEN" \
+  -d '{
+    "name": "Fresh Potatoes",
+    "description": "Fresh farm potatoes",
+    "price": 25.00,
+    "unit": "kg",
+    "category_id": 1,
+    "stock_quantity": 200,
+    "is_featured": false,
+    "image_url": "/images/potatoes.jpg"
+  }'
+
+# Update product
+curl -X PUT "https://fresh-veggies-production.up.railway.app/api/admin/products/1" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_ADMIN_TOKEN" \
+  -d '{
+    "price": 50.00,
+    "stock_quantity": 80
+  }'
+```
+
+#### **Step 5: Customer Management**
+```bash
+# Get all customers
+curl -X GET "https://fresh-veggies-production.up.railway.app/api/admin/customers" \
+  -H "Authorization: Bearer YOUR_ADMIN_TOKEN"
+
+# Get customer details
+curl -X GET "https://fresh-veggies-production.up.railway.app/api/admin/customers/1" \
+  -H "Authorization: Bearer YOUR_ADMIN_TOKEN"
+```
+
+---
+
+### 3. 🚚 **Delivery Flow Testing**
+
+#### **Step 1: Login as Delivery Partner**
+```bash
+curl -X POST "https://fresh-veggies-production.up.railway.app/api/auth/login" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email": "delivery@freshveggies.com",
+    "password": "delivery123"
+  }'
+```
+*Save the `access_token` for delivery operations*
+
+#### **Step 2: View Assigned Routes**
+```bash
+# Get today's delivery routes
+curl -X GET "https://fresh-veggies-production.up.railway.app/api/delivery/routes/today" \
+  -H "Authorization: Bearer YOUR_DELIVERY_TOKEN"
+
+# Get assigned orders
+curl -X GET "https://fresh-veggies-production.up.railway.app/api/delivery/orders/assigned" \
+  -H "Authorization: Bearer YOUR_DELIVERY_TOKEN"
+```
+
+#### **Step 3: Update Delivery Status**
+```bash
+# Mark order as out for delivery
+curl -X PUT "https://fresh-veggies-production.up.railway.app/api/delivery/orders/1/status" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_DELIVERY_TOKEN" \
+  -d '{
+    "status": "out_for_delivery",
+    "notes": "On the way to delivery address"
+  }'
+
+# Mark order as delivered
+curl -X PUT "https://fresh-veggies-production.up.railway.app/api/delivery/orders/1/status" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_DELIVERY_TOKEN" \
+  -d '{
+    "status": "delivered",
+    "notes": "Successfully delivered to customer"
+  }'
+```
+
+#### **Step 4: View Delivery History**
+```bash
+# Get delivery history
+curl -X GET "https://fresh-veggies-production.up.railway.app/api/delivery/history" \
+  -H "Authorization: Bearer YOUR_DELIVERY_TOKEN"
+
+# Get earnings summary
+curl -X GET "https://fresh-veggies-production.up.railway.app/api/delivery/earnings" \
+  -H "Authorization: Bearer YOUR_DELIVERY_TOKEN"
+```
+
+---
+
+## 🔍 **API Status Check**
+
+### **Health & Info Endpoints**
+```bash
+# Health check
+curl "https://fresh-veggies-production.up.railway.app/health"
+
+# API information
+curl "https://fresh-veggies-production.up.railway.app/"
+
+# Current user info (requires token)
+curl -X GET "https://fresh-veggies-production.up.railway.app/api/auth/me" \
+  -H "Authorization: Bearer YOUR_TOKEN"
+```
+
+---
+
+## 📊 **Expected Response Formats**
+
+### **Product Response**
+```json
+{
+  "id": 1,
+  "name": "Fresh Tomatoes",
+  "description": "Fresh red tomatoes, perfect for cooking",
+  "price": 45.0,
+  "unit": "kg",
+  "category_id": 1,
+  "category_name": "Vegetables",
+  "stock_quantity": 100,
+  "is_featured": true,
+  "image_url": "/images/tomatoes.jpg"
+}
+```
+
+### **Order Response**
+```json
+{
+  "id": 1,
+  "total_amount": 115.0,
+  "status": "pending",
+  "delivery_address": "123 Main Street, Delhi, 110001",
+  "delivery_phone": "+91-9876543210",
+  "created_at": "2024-06-24T23:30:00Z",
+  "items": [
+    {
+      "product_id": 1,
+      "product_name": "Fresh Tomatoes",
+      "quantity": 2,
+      "unit_price": 45.0,
+      "total_price": 90.0
+    }
+  ]
+}
+```
+
+### **Auth Response**
+```json
+{
+  "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+  "token_type": "bearer",
+  "user": {
+    "id": 1,
+    "email": "customer@example.com",
+    "name": "John Doe",
+    "role": "customer",
+    "is_active": true
+  }
+}
+```
+
+---
+
+## ✅ **Complete Flow Verification**
+
+### **End-to-End Test Scenario**
+
+1. **Register** → **Login** → **Browse Products** → **Place Order** → **Track Order**
+2. **Admin Login** → **View Dashboard** → **Manage Order** → **Assign Delivery**
+3. **Delivery Login** → **View Routes** → **Update Status** → **Complete Delivery**
+
+This complete API system supports the entire e-commerce workflow from customer purchase to final delivery! 🚀
 
 ## 📊 API Response Format
 
