@@ -23,4 +23,4 @@ RUN mkdir -p uploads
 EXPOSE $PORT
 
 # Run the application
-CMD python test_server.py 
+CMD uvicorn main_simple:app --host 0.0.0.0 --port $PORT 
