@@ -93,69 +93,106 @@ async def startup_event():
         print(f"Environment: {settings.ENVIRONMENT}")
         print(f"Database URL configured: {'Yes' if settings.DATABASE_URL else 'No'}")
         
+        # Print more detailed database info for debugging
+        if settings.DATABASE_URL:
+            # Mask password for security
+            masked_url = settings.DATABASE_URL
+            if '@' in masked_url:
+                parts = masked_url.split('@')
+                if '://' in parts[0]:
+                    user_part = parts[0].split('://')[-1]
+                    if ':' in user_part:
+                        user, _ = user_part.split(':', 1)
+                        masked_url = masked_url.replace(user_part, f"{user}:****")
+            print(f"Database URL: {masked_url}")
+        
         # Try to create tables but don't fail if it doesn't work
         try:
+            print("📊 Attempting to create database tables...")
             create_tables()
             print("✅ Database tables created successfully")
         except Exception as db_error:
-            print(f"⚠️ Database table creation failed: {db_error}")
+            print(f"⚠️ Database table creation failed: {type(db_error).__name__}: {db_error}")
             print("📝 App will start anyway - database operations may fail")
+        
+        # Try to test database connection
+        try:
+            print("🔌 Testing database connection...")
+            from app.database.connection import get_database
+            db = next(get_database())
+            from sqlalchemy import text
+            result = db.execute(text("SELECT 1"))
+            print("✅ Database connection test successful")
+        except Exception as conn_error:
+            print(f"⚠️ Database connection test failed: {type(conn_error).__name__}: {conn_error}")
         
         # Try to seed initial data but don't fail if it doesn't work
         try:
+            print("🌱 Attempting to seed database...")
             from app.database.seed import seed_database
             await seed_database()
             print("✅ Database seeded with initial data")
         except Exception as seed_error:
-            print(f"⚠️ Database seeding failed: {seed_error}")
+            print(f"⚠️ Database seeding failed: {type(seed_error).__name__}: {seed_error}")
             print("📝 App will start with empty database")
         
         print("🎉 Fresh Veggies API startup completed")
         
     except Exception as e:
-        print(f"⚠️ Startup process encountered errors: {e}")
+        print(f"⚠️ Startup process encountered errors: {type(e).__name__}: {e}")
         print("🔄 App will continue starting - some features may be limited")
+        import traceback
+        print("📝 Full error traceback:")
+        traceback.print_exc()
 
 # Health check endpoint
 @app.get("/health")
 async def health_check():
     """Health check endpoint for deployment monitoring"""
+    health_status = {
+        "status": "healthy",
+        "version": "2.0.0",
+        "environment": settings.ENVIRONMENT,
+        "timestamp": None,
+        "database": "unknown",
+        "errors": []
+    }
+    
     try:
-        # Test database connection with timeout
-        from app.database.connection import get_database
-        import signal
+        from datetime import datetime
+        health_status["timestamp"] = datetime.utcnow().isoformat()
         
-        def timeout_handler(signum, frame):
-            raise TimeoutError("Database connection timeout")
-        
-        # Set a 5-second timeout for database check
-        signal.signal(signal.SIGALRM, timeout_handler)
-        signal.alarm(5)
-        
+        # Test database connection with detailed error reporting
         try:
+            print("🔍 Health check: Testing database connection...")
+            from app.database.connection import get_database
             db = next(get_database())
             from sqlalchemy import text
-            db.execute(text("SELECT 1"))
-            db_status = "connected"
-            signal.alarm(0)  # Cancel the alarm
-        except Exception as e:
-            signal.alarm(0)  # Cancel the alarm
-            print(f"Database health check failed: {e}")
-            db_status = "disconnected"
+            result = db.execute(text("SELECT 1"))
+            health_status["database"] = "connected"
+            print("✅ Health check: Database connection successful")
+            
+        except Exception as db_error:
+            error_msg = f"Database connection failed: {type(db_error).__name__}: {db_error}"
+            print(f"❌ Health check: {error_msg}")
+            health_status["database"] = "disconnected"
+            health_status["errors"].append(error_msg)
             
     except Exception as e:
-        print(f"Health check error: {e}")
-        db_status = "error"
+        error_msg = f"Health check error: {type(e).__name__}: {e}"
+        print(f"❌ Health check: {error_msg}")
+        health_status["errors"].append(error_msg)
+        health_status["status"] = "unhealthy"
+    
+    # Always return 200 OK so Railway doesn't kill the app
+    print(f"🏥 Health check result: {health_status['status']} (database: {health_status['database']})")
     
     return {
-        "status": "healthy",
-        "database": db_status,
-        "environment": settings.ENVIRONMENT,
-        "version": "2.0.0",
-        "message": "API is running",
+        **health_status,
+        "message": "API is running" if health_status["status"] == "healthy" else "API running with issues",
         "endpoints": {
             "docs": "/docs",
-            "admin": "/api/admin",
+            "admin": "/api/admin", 
             "user": "/api/user",
             "delivery": "/api/delivery"
         }
