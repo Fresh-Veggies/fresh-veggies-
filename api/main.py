@@ -78,11 +78,18 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Trusted host middleware for security
-app.add_middleware(
-    TrustedHostMiddleware,
-    allowed_hosts=["*"] if settings.ENVIRONMENT == "development" else ["yourdomain.com"]
-)
+# Trusted host middleware for security - temporarily disabled for debugging
+# app.add_middleware(
+#     TrustedHostMiddleware,
+#     allowed_hosts=[
+#         "*",  # Allow all hosts for now - can be restricted later
+#         "localhost",
+#         "127.0.0.1",
+#         "*.railway.app",
+#         "*.up.railway.app",
+#         "fresh-veggies-production.up.railway.app"
+#     ]
+# )
 
 # Database initialization
 @app.on_event("startup")
