@@ -1,0 +1,16 @@
+# Add this to your Next.js .env.local file:
+NEXT_PUBLIC_API_URL=https://your-app-name.railway.app/api
+
+# Example usage in your React components:
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api'
+
+// Login example:
+const response = await fetch(`${API_BASE_URL}/auth/login`, {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({ email, password })
+})
+
+// Get products example:
+const products = await fetch(`${API_BASE_URL}/user/products`)
+const data = await products.json() 
