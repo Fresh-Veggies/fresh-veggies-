@@ -4,7 +4,7 @@ import os
 
 class Settings(BaseSettings):
     # Database
-    DATABASE_URL: str = os.getenv("DATABASE_URL", "postgresql://username:password@localhost:5432/fresh_veggies")
+    DATABASE_URL: str = os.getenv("DATABASE_URL", "sqlite:///./fresh_veggies.db")
     
     # JWT
     SECRET_KEY: str = "your-super-secret-key-here-change-in-production"
@@ -29,7 +29,13 @@ class Settings(BaseSettings):
     SMTP_PASSWORD: str = ""
     
     # Google Maps API
-    GOOGLE_MAPS_API_KEY: str = ""
+    GOOGLE_MAPS_API_KEY: str = os.getenv("GOOGLE_MAPS_API_KEY", "")
+    
+    # SMS Service Configuration
+    SMS_PROVIDER: str = os.getenv("SMS_PROVIDER", "free_sms")
+    TWILIO_ACCOUNT_SID: str = os.getenv("TWILIO_ACCOUNT_SID", "")
+    TWILIO_AUTH_TOKEN: str = os.getenv("TWILIO_AUTH_TOKEN", "")
+    TWILIO_FROM_NUMBER: str = os.getenv("TWILIO_FROM_NUMBER", "")
     
     # Warehouse Location
     WAREHOUSE_LAT: float = 28.6139
@@ -39,9 +45,11 @@ class Settings(BaseSettings):
     MAX_FILE_SIZE: int = 5242880  # 5MB
     UPLOAD_DIR: str = "uploads"
     
-    class Config:
-        env_file = ".env"
-        case_sensitive = True
+    model_config = {
+        "env_file": ".env",
+        "case_sensitive": True,
+        "extra": "ignore"  # Ignore extra fields from .env
+    }
 
 # Create settings instance
 settings = Settings() 
