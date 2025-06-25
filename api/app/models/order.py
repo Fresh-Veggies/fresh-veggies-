@@ -11,6 +11,8 @@ class Order(Base):
     total_amount = Column(Float, nullable=False)
     status = Column(String(20), default="pending")  # pending, confirmed, preparing, out_for_delivery, delivered, cancelled
     delivery_address = Column(Text, nullable=False)
+    delivery_latitude = Column(Float)
+    delivery_longitude = Column(Float)
     delivery_phone = Column(String(20))
     delivery_partner_id = Column(Integer, ForeignKey("users.id"))
     delivery_date = Column(DateTime)
